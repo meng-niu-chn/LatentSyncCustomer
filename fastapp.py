@@ -22,16 +22,45 @@ app = FastAPI()
 # 确保 assets 目录存在
 os.makedirs("assets", exist_ok=True)
 
+
 def run_inference_script(video_path, audio_path, output_video_path):
     try:
         # 确保脚本路径正确
         script_path = "./fastapp_inference.sh"
-        subprocess.run(
+        process = subprocess.Popen(
             [script_path, video_path, audio_path, output_video_path],
-            check=True,  # 检查脚本是否成功执行
-            capture_output=True,  # 捕获标准输出和错误
-            text=True  # 将输出转换为字符串
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
         )
+
+        # 实时读取输出
+        while True:
+            # 使用 select 来检查是否有输出
+            reads = [process.stdout.fileno(), process.stderr.fileno()]
+            ret = select.select(reads, [], [])
+
+            for fd in ret[0]:
+                if fd == process.stdout.fileno():
+                    line = process.stdout.readline()
+                    if line:
+                        logging.info(f"Script stdout: {line.strip()}")
+                if fd == process.stderr.fileno():
+                    line = process.stderr.readline()
+                    if line:
+                        logging.error(f"Script stderr: {line.strip()}")
+
+            # 检查进程是否结束
+            if process.poll() is not None:
+                break
+
+        # 等待进程结束
+        process.wait()
+
+        # 检查返回码
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(process.returncode, process.args)
+
     except subprocess.CalledProcessError as e:
         # 打印脚本的错误日志
         logging.error(f"Script failed with error: {e.stderr}")
