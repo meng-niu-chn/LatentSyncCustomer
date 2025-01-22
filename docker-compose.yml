@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  latent-sync-app:
+    image: latentsync-image:latest
+    restart: always
+    container_name: latent-sync
+    privileged: true
+    ports:
+      - "8010:8000"
+    environment:
+      TZ: Asia/Shanghai   # 设置时区
