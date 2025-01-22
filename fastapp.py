@@ -89,13 +89,13 @@ async def run_inference(
         os.makedirs(request_dir, exist_ok=True)
 
         # 保存视频文件
-        video_path = os.path.join(request_dir, "demo1_video.mp4")
+        video_path = os.path.join(request_dir, "video_in.mp4")
         with open(video_path, "wb") as video_buffer:
             video_buffer.write(await video_file.read())
         logging.info(f"Video file saved to {video_path}")
 
         # 保存音频文件
-        audio_path = os.path.join(request_dir, "demo1_audio.wav")
+        audio_path = os.path.join(request_dir, "audio_in.wav")
         with open(audio_path, "wb") as audio_buffer:
             audio_buffer.write(await audio_file.read())
         logging.info(f"Audio file saved to {audio_path}")
@@ -134,6 +134,7 @@ def cleanup_temp_dir(request_dir: str):
     if request_dir and os.path.exists(request_dir):
         logging.info(f"removing {request_dir}")
         shutil.rmtree(request_dir)
+        logging.info(f"removed {request_dir}")
 
 if __name__ == '__main__':
     import uvicorn
